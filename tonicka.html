@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Toničky Hra :-)</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    canvas {
+      background: #222;
+      display: block;
+      margin: 20px auto;
+      border: 2px solid #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Toničky Had</h1>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <p>K ovládání hada slouží buď šipky nebo dotykový displej.</p>
+  <script>
+    // Get canvas and context
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Set grid size and board dimensions
+    const cellSize = 20;
+    const boardWidth = canvas.width / cellSize;
+    const boardHeight = canvas.height / cellSize;
+
+    // Initialize snake in the center of the board
+    let snake = [
+      { x: Math.floor(boardWidth / 2), y: Math.floor(boardHeight / 2) }
+    ];
+    // Start moving right
+    let direction = { x: 1, y: 0 };
+    // Use nextDirection to avoid immediate 180° turns
+    let nextDirection = direction;
+    let score = 0;
+    let gameInterval;
+
+    // Define the emojis to use
+    const snakeHeadEmoji = "👶"; // Child emoticon for snake head
+    const candyEmoji = "🍬";     // Candy emoticon
+
+    // Get a random position for candy that is not on the snake
+    let candy = getRandomCandy();
+    function getRandomCandy() {
+      let valid = false;
+      let pos;
+      while (!valid) {
+        pos = {
+          x: Math.floor(Math.random() * boardWidth),
+          y: Math.floor(Math.random() * boardHeight)
+        };
+        valid = !snake.some(segment => segment.x === pos.x && segment.y === pos.y);
+      }
+      return pos;
+    }
+
+    // Main game loop
+    function gameLoop() {
+      // Update current direction
+      direction = nextDirection;
+      // Calculate new head position
+      const head = snake[0];
+      const newHead = { x: head.x + direction.x, y: head.y + direction.y };
+
+      // Check for collisions with walls
+      if (
+        newHead.x < 0 ||
+        newHead.x >= boardWidth ||
+        newHead.y < 0 ||
+        newHead.y >= boardHeight
+      ) {
+        return gameOver();
+      }
+      // Check for collisions with self
+      if (snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
+        return gameOver();
+      }
+
+      // Add new head to the snake
+      snake.unshift(newHead);
+
+      // Check if candy is eaten
+      if (newHead.x === candy.x && newHead.y === candy.y) {
+        score++;
+        candy = getRandomCandy();
+      } else {
+        // Remove tail if no candy eaten
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    // Draw everything on the canvas
+    function draw() {
+      // Clear the canvas
+      ctx.fillStyle = "#222";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Set font settings for emoji drawing
+      ctx.font = cellSize + "px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // Draw the candy
+      ctx.fillText(candyEmoji, candy.x * cellSize + cellSize / 2, candy.y * cellSize + cellSize / 2);
+
+      // Draw the snake head using the child emoji
+      const head = snake[0];
+      ctx.fillText(snakeHeadEmoji, head.x * cellSize + cellSize / 2, head.y * cellSize + cellSize / 2);
+
+      // Draw the rest of the snake body as simple rectangles
+      ctx.fillStyle = "green";
+      for (let i = 1; i < snake.length; i++) {
+        ctx.fillRect(snake[i].x * cellSize, snake[i].y * cellSize, cellSize, cellSize);
+      }
+
+      // Display score
+      ctx.fillStyle = "white";
+      ctx.font = "16px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText("Skore: " + score, 10, canvas.height - 10);
+    }
+
+    // End the game
+    function gameOver() {
+      clearInterval(gameInterval);
+      alert("Game Over! Your score: " + score);
+      // Restart the game (reload the page)
+      document.location.reload();
+    }
+
+    // Listen for keyboard controls
+    document.addEventListener("keydown", e => {
+      switch(e.key) {
+        case "ArrowUp":
+          if (direction.y !== 1) nextDirection = { x: 0, y: -1 };
+          break;
+        case "ArrowDown":
+          if (direction.y !== -1) nextDirection = { x: 0, y: 1 };
+          break;
+        case "ArrowLeft":
+          if (direction.x !== 1) nextDirection = { x: -1, y: 0 };
+          break;
+        case "ArrowRight":
+          if (direction.x !== -1) nextDirection = { x: 1, y: 0 };
+          break;
+      }
+    });
+
+    // Touch controls for mobile devices
+    let touchStartX = null;
+    let touchStartY = null;
+    canvas.addEventListener("touchstart", function(e) {
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    }, false);
+    canvas.addEventListener("touchend", function(e) {
+      if (touchStartX === null || touchStartY === null) return;
+      const touch = e.changedTouches[0];
+      const touchEndX = touch.clientX;
+      const touchEndY = touch.clientY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal swipe
+        if (deltaX > 0 && direction.x !== -1) {
+          nextDirection = { x: 1, y: 0 };
+        } else if (deltaX < 0 && direction.x !== 1) {
+          nextDirection = { x: -1, y: 0 };
+        }
+      } else {
+        // Vertical swipe
+        if (deltaY > 0 && direction.y !== -1) {
+          nextDirection = { x: 0, y: 1 };
+        } else if (deltaY < 0 && direction.y !== 1) {
+          nextDirection = { x: 0, y: -1 };
+        }
+      }
+      touchStartX = null;
+      touchStartY = null;
+    }, false);
+
+    // Start the game loop with a slower speed (150ms interval)
+    gameInterval = setInterval(gameLoop, 250);
+  </script>
+</body>
+</html>
