@@ -6,7 +6,7 @@
     <title>Squirrel Nut Chase</title>
     <style>
         body { text-align: center; font-family: Arial, sans-serif; }
-        canvas { background: lightgreen; display: block; margin: auto; }
+        canvas { background: lightgreen; display: block; margin: auto; touch-action: none; }
         .controls { margin-top: 10px; }
         button { font-size: 20px; padding: 10px; margin: 5px; }
     </style>
@@ -14,12 +14,6 @@
 <body>
     <h1>Squirrel Nut Chase</h1>
     <canvas id="gameCanvas" width="500" height="300"></canvas>
-    <div class="controls">
-        <button onclick="moveLeft()">⬅️</button>
-        <button onclick="moveRight()">➡️</button>
-        <button onclick="moveUp()">⬆️</button>
-        <button onclick="moveDown()">⬇️</button>
-    </div>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
@@ -28,6 +22,7 @@
         let nuts = [{ x: 100, y: 100 }, { x: 300, y: 200 }, { x: 400, y: 50 }];
         let robot = { x: 250, y: 150, size: 20, speed: 1.2 };
         let gameOver = false;
+        let touchStartX = 0, touchStartY = 0;
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -89,6 +84,26 @@
             if (event.key === "ArrowRight") moveRight();
             if (event.key === "ArrowUp") moveUp();
             if (event.key === "ArrowDown") moveDown();
+        });
+
+        canvas.addEventListener("touchstart", (event) => {
+            let touch = event.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        });
+
+        canvas.addEventListener("touchend", (event) => {
+            let touch = event.changedTouches[0];
+            let deltaX = touch.clientX - touchStartX;
+            let deltaY = touch.clientY - touchStartY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 0) moveRight();
+                else moveLeft();
+            } else {
+                if (deltaY > 0) moveDown();
+                else moveUp();
+            }
         });
         
         gameLoop();
