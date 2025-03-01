@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squirrel Nut Chase</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        canvas { background: lightgreen; display: block; margin: auto; }
+        .controls { margin-top: 10px; }
+        button { font-size: 20px; padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Squirrel Nut Chase</h1>
+    <canvas id="gameCanvas" width="500" height="300"></canvas>
+    <div class="controls">
+        <button onclick="moveLeft()">⬅️</button>
+        <button onclick="moveRight()">➡️</button>
+        <button onclick="moveUp()">⬆️</button>
+        <button onclick="moveDown()">⬇️</button>
+    </div>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let squirrel = { x: 50, y: 50, size: 20, speed: 5 };
+        let nuts = [{ x: 100, y: 100 }, { x: 300, y: 200 }, { x: 400, y: 50 }];
+        let robot = { x: 250, y: 150, size: 20, speed: 1.2 };
+        let gameOver = false;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.font = "20px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            ctx.fillText("🐿️", squirrel.x + squirrel.size / 2, squirrel.y + squirrel.size / 2);
+            
+            nuts.forEach(nut => {
+                ctx.fillText("🥜", nut.x + 5, nut.y + 5);
+            });
+            
+            ctx.fillText("🤖", robot.x + robot.size / 2, robot.y + robot.size / 2);
+        }
+
+        function update() {
+            let dx = squirrel.x - robot.x;
+            let dy = squirrel.y - robot.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0 && Math.random() < 0.7) { // Reduce robot efficiency
+                robot.x += (dx / distance) * robot.speed;
+                robot.y += (dy / distance) * robot.speed;
+            }
+            
+            nuts = nuts.filter(nut => !(squirrel.x < nut.x + 10 && squirrel.x + squirrel.size > nut.x && squirrel.y < nut.y + 10 && squirrel.y + squirrel.size > nut.y));
+            
+            if (squirrel.x < robot.x + robot.size && squirrel.x + squirrel.size > robot.x && squirrel.y < robot.y + robot.size && squirrel.y + squirrel.size > robot.y) {
+                gameOver = true;
+                alert("Game Over! The robot caught you!");
+                location.reload();
+            }
+            if (nuts.length === 0) {
+                gameOver = true;
+                setTimeout(() => {
+                    alert("🎉 You won! All nuts collected! 🎉");
+                    location.reload();
+                }, 500);
+            }
+        }
+
+        function gameLoop() {
+            if (!gameOver) {
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function moveLeft() { squirrel.x = Math.max(0, squirrel.x - squirrel.speed); }
+        function moveRight() { squirrel.x = Math.min(canvas.width - squirrel.size, squirrel.x + squirrel.speed); }
+        function moveUp() { squirrel.y = Math.max(0, squirrel.y - squirrel.speed); }
+        function moveDown() { squirrel.y = Math.min(canvas.height - squirrel.size, squirrel.y + squirrel.speed); }
+        
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowLeft") moveLeft();
+            if (event.key === "ArrowRight") moveRight();
+            if (event.key === "ArrowUp") moveUp();
+            if (event.key === "ArrowDown") moveDown();
+        });
+        
+        gameLoop();
+    </script>
+</body>
+</html>
