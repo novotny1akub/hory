@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Squirrel Nut Chase</title>
+    <title>Toničky Veverka</title>
     <style>
         body { text-align: center; font-family: Arial, sans-serif; }
         canvas { background: lightgreen; display: block; margin: auto; touch-action: none; }
@@ -12,7 +12,7 @@
     </style>
 </head>
 <body>
-    <h1>Squirrel Nut Chase</h1>
+    <h1>Toničky Veverka</h1>
     <canvas id="gameCanvas" width="500" height="300"></canvas>
     <script>
         const canvas = document.getElementById("gameCanvas");
@@ -54,13 +54,13 @@
             
             if (squirrel.x < robot.x + robot.size && squirrel.x + squirrel.size > robot.x && squirrel.y < robot.y + robot.size && squirrel.y + squirrel.size > robot.y) {
                 gameOver = true;
-                alert("Game Over! The robot caught you!");
+                alert("Robot tě dostal");
                 location.reload();
             }
             if (nuts.length === 0) {
                 gameOver = true;
                 setTimeout(() => {
-                    alert("🎉 You won! All nuts collected! 🎉");
+                    alert("🎉 Hurá, vyhrála jsi🎉");
                     location.reload();
                 }, 500);
             }
