@@ -18,11 +18,12 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        let squirrel = { x: 50, y: 50, size: 20, speed: 5 };
+        let squirrel = { x: 50, y: 50, size: 20, speed: 10 };
         let nuts = [{ x: 100, y: 100 }, { x: 300, y: 200 }, { x: 400, y: 50 }];
         let robot = { x: 250, y: 150, size: 20, speed: 1.2 };
         let gameOver = false;
         let touchStartX = 0, touchStartY = 0;
+        let touchEndX = 0, touchEndY = 0;
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -74,16 +75,16 @@
             }
         }
         
-        function moveLeft() { squirrel.x = Math.max(0, squirrel.x - squirrel.speed); }
-        function moveRight() { squirrel.x = Math.min(canvas.width - squirrel.size, squirrel.x + squirrel.speed); }
-        function moveUp() { squirrel.y = Math.max(0, squirrel.y - squirrel.speed); }
-        function moveDown() { squirrel.y = Math.min(canvas.height - squirrel.size, squirrel.y + squirrel.speed); }
-        
+        function move(dx, dy) {
+            squirrel.x = Math.max(0, Math.min(canvas.width - squirrel.size, squirrel.x + dx));
+            squirrel.y = Math.max(0, Math.min(canvas.height - squirrel.size, squirrel.y + dy));
+        }
+
         window.addEventListener("keydown", (event) => {
-            if (event.key === "ArrowLeft") moveLeft();
-            if (event.key === "ArrowRight") moveRight();
-            if (event.key === "ArrowUp") moveUp();
-            if (event.key === "ArrowDown") moveDown();
+            if (event.key === "ArrowLeft") move(-squirrel.speed, 0);
+            if (event.key === "ArrowRight") move(squirrel.speed, 0);
+            if (event.key === "ArrowUp") move(0, -squirrel.speed);
+            if (event.key === "ArrowDown") move(0, squirrel.speed);
         });
 
         canvas.addEventListener("touchstart", (event) => {
@@ -92,18 +93,21 @@
             touchStartY = touch.clientY;
         });
 
-        canvas.addEventListener("touchend", (event) => {
-            let touch = event.changedTouches[0];
-            let deltaX = touch.clientX - touchStartX;
-            let deltaY = touch.clientY - touchStartY;
-            
+        canvas.addEventListener("touchmove", (event) => {
+            let touch = event.touches[0];
+            touchEndX = touch.clientX;
+            touchEndY = touch.clientY;
+
+            let deltaX = touchEndX - touchStartX;
+            let deltaY = touchEndY - touchStartY;
+
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                if (deltaX > 0) moveRight();
-                else moveLeft();
+                move(deltaX * 0.2, 0);
             } else {
-                if (deltaY > 0) moveDown();
-                else moveUp();
+                move(0, deltaY * 0.2);
             }
+            touchStartX = touchEndX;
+            touchStartY = touchEndY;
         });
         
         gameLoop();
