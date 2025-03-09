@@ -1,116 +1,228 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toničky Veverka</title>
-    <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        canvas { background: lightgreen; display: block; margin: auto; touch-action: none; }
-        .controls { margin-top: 10px; }
-        button { font-size: 20px; padding: 10px; margin: 5px; }
-    </style>
+<title>Squirrel Nut Grab</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background-color: lightblue;
+  }
+  #gameCanvas {
+    background-color: lightgreen;
+    display: block;
+    margin: 0 auto;
+  }
+  .icon {
+    font-size: 30px;
+  }
+</style>
 </head>
 <body>
-    <h1>Toničky Veverka</h1>
-    <canvas id="gameCanvas" width="500" height="300"></canvas>
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
+<canvas id="gameCanvas"></canvas>
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
 
-        let squirrel = { x: 50, y: 50, size: 20, speed: 10 };
-        let nuts = [{ x: 100, y: 100 }, { x: 300, y: 200 }, { x: 400, y: 50 }];
-        let robot = { x: 250, y: 150, size: 20, speed: 1.2 };
-        let gameOver = false;
-        let touchStartX = 0, touchStartY = 0;
-        let touchEndX = 0, touchEndY = 0;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.font = "20px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            
-            ctx.fillText("🐿️", squirrel.x + squirrel.size / 2, squirrel.y + squirrel.size / 2);
-            
-            nuts.forEach(nut => {
-                ctx.fillText("🥜", nut.x + 5, nut.y + 5);
-            });
-            
-            ctx.fillText("🤖", robot.x + robot.size / 2, robot.y + robot.size / 2);
-        }
+  const squirrel = {
+    x: 50,
+    y: canvas.height / 2,
+    size: 30,
+    speed: 3,
+    directionX: 1,
+    directionY: 0,
+  };
 
-        function update() {
-            let dx = squirrel.x - robot.x;
-            let dy = squirrel.y - robot.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance > 0 && Math.random() < 0.7) { // Reduce robot efficiency
-                robot.x += (dx / distance) * robot.speed;
-                robot.y += (dy / distance) * robot.speed;
-            }
-            
-            nuts = nuts.filter(nut => !(squirrel.x < nut.x + 10 && squirrel.x + squirrel.size > nut.x && squirrel.y < nut.y + 10 && squirrel.y + squirrel.size > nut.y));
-            
-            if (squirrel.x < robot.x + robot.size && squirrel.x + squirrel.size > robot.x && squirrel.y < robot.y + robot.size && squirrel.y + squirrel.size > robot.y) {
-                gameOver = true;
-                alert("Robot tě dostal");
-                location.reload();
-            }
-            if (nuts.length === 0) {
-                gameOver = true;
-                setTimeout(() => {
-                    alert("🎉 Hurá, vyhrála jsi🎉");
-                    location.reload();
-                }, 500);
-            }
-        }
+  const robot = {
+    x: canvas.width - 50,
+    y: canvas.height / 2,
+    size: 30,
+    speed: 2,
+  };
 
-        function gameLoop() {
-            if (!gameOver) {
-                update();
-                draw();
-                requestAnimationFrame(gameLoop);
-            }
-        }
-        
-        function move(dx, dy) {
-            squirrel.x = Math.max(0, Math.min(canvas.width - squirrel.size, squirrel.x + dx));
-            squirrel.y = Math.max(0, Math.min(canvas.height - squirrel.size, squirrel.y + dy));
-        }
+  let nuts = [];
+  const nutSize = 30;
+  let nutCount = 10;
+  let collectedNuts = 0;
 
-        window.addEventListener("keydown", (event) => {
-            if (event.key === "ArrowLeft") move(-squirrel.speed, 0);
-            if (event.key === "ArrowRight") move(squirrel.speed, 0);
-            if (event.key === "ArrowUp") move(0, -squirrel.speed);
-            if (event.key === "ArrowDown") move(0, squirrel.speed);
-        });
+  let timeLeft = 60;
+  let timerInterval;
 
-        canvas.addEventListener("touchstart", (event) => {
-            let touch = event.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-        });
+  function createNuts() {
+    for (let i = 0; i < nutCount; i++) {
+      nuts.push({
+        x: Math.random() * (canvas.width - nutSize),
+        y: Math.random() * (canvas.height - nutSize),
+        collected: false,
+      });
+    }
+  }
 
-        canvas.addEventListener("touchmove", (event) => {
-            let touch = event.touches[0];
-            touchEndX = touch.clientX;
-            touchEndY = touch.clientY;
+  function drawSquirrel() {
+    ctx.font = squirrel.size + "px serif";
+    ctx.fillText("🐿️", squirrel.x, squirrel.y + squirrel.size);
+  }
 
-            let deltaX = touchEndX - touchStartX;
-            let deltaY = touchEndY - touchStartY;
+  function drawRobot() {
+    ctx.font = robot.size + "px serif";
+    ctx.fillText("🤖", robot.x, robot.y + robot.size);
+  }
 
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                move(deltaX * 0.2, 0);
-            } else {
-                move(0, deltaY * 0.2);
-            }
-            touchStartX = touchEndX;
-            touchStartY = touchEndY;
-        });
-        
-        gameLoop();
-    </script>
+  function drawNuts() {
+    nuts.forEach((nut) => {
+      if (!nut.collected) {
+        ctx.font = nutSize + "px serif";
+        ctx.fillText("🥜", nut.x, nut.y + nutSize);
+      }
+    });
+  }
+
+  function drawTimer() {
+    ctx.fillStyle = 'black';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Time: ${timeLeft}`, 10, 30);
+    ctx.fillText(`Nuts: ${collectedNuts}/${nutCount}`, 10, 60);
+  }
+
+  function checkCollision(obj1, obj2) {
+    return (
+      obj1.x < obj2.x + obj2.size &&
+      obj1.x + obj1.size > obj2.x &&
+      obj1.y < obj2.y + obj2.size &&
+      obj1.y + obj1.size > obj2.y
+    );
+  }
+
+  function checkProximity(obj1, obj2) {
+    const dx = obj1.x - obj2.x;
+    const dy = obj1.y - obj2.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance < obj1.size;
+  }
+
+  function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    squirrel.x += squirrel.speed * squirrel.directionX;
+    squirrel.y += squirrel.speed * squirrel.directionY;
+
+    if (squirrel.x < 0) squirrel.x = 0;
+    if (squirrel.y < 0) squirrel.y = 0;
+    if (squirrel.x > canvas.width - squirrel.size) squirrel.x = canvas.width - squirrel.size;
+    if (squirrel.y > canvas.height - squirrel.size) squirrel.y = canvas.height - squirrel.size;
+
+    let dx = squirrel.x - robot.x;
+    let dy = squirrel.y - robot.y;
+    let distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > 0 && Math.random() < 0.8) {
+      robot.x += (dx / distance) * robot.speed;
+      robot.y += (dy / distance) * robot.speed;
+    }
+
+    for (let i = nuts.length - 1; i >= 0; i--) {
+      const nut = nuts[i];
+      if (!nut.collected && checkProximity(squirrel, nut)) {
+        nut.collected = true;
+        collectedNuts++;
+        nuts.splice(i, 1);
+      }
+    }
+
+    if (checkCollision(squirrel, robot)) {
+      gameOver('Robot caught you!');
+      return;
+    }
+
+    if (collectedNuts === nutCount) {
+      gameOver('You collected all the nuts!');
+      return;
+    }
+
+    drawSquirrel();
+    drawRobot();
+    drawNuts();
+    drawTimer();
+
+    requestAnimationFrame(update);
+  }
+
+  function gameOver(message) {
+    clearInterval(timerInterval);
+    alert(message);
+    resetGame();
+  }
+
+  function resetGame() {
+    squirrel.x = 50;
+    squirrel.y = canvas.height / 2;
+    squirrel.directionX = 1;
+    squirrel.directionY = 0;
+    robot.x = canvas.width - 50;
+    robot.y = canvas.height / 2;
+    collectedNuts = 0;
+    timeLeft = 60;
+    nuts = [];
+    startGame();
+  }
+
+  function startGame() {
+    createNuts();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft <= 0) {
+        gameOver('Time is up!');
+      }
+    }, 1000);
+    update();
+  }
+
+  document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+      case 'ArrowUp':
+        squirrel.directionX = 0;
+        squirrel.directionY = -1;
+        break;
+      case 'ArrowDown':
+        squirrel.directionX = 0;
+        squirrel.directionY = 1;
+        break;
+      case 'ArrowLeft':
+        squirrel.directionX = -1;
+        squirrel.directionY = 0;
+        break;
+      case 'ArrowRight':
+        squirrel.directionX = 1;
+        squirrel.directionY = 0;
+        break;
+    }
+  });
+
+  canvas.addEventListener('touchstart', handleTouch);
+  canvas.addEventListener('touchmove', handleTouch);
+
+  function handleTouch(event) {
+    const touch = event.touches[0];
+    const touchX = touch.clientX;
+    const touchY = touch.clientY;
+    const centerX = squirrel.x + squirrel.size / 2;
+    const centerY = squirrel.y + squirrel.size / 2;
+    const deltaX = touchX - centerX;
+    const deltaY = touchY - centerY;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      squirrel.directionX = deltaX > 0 ? 1 : -1;
+      squirrel.directionY = 0;
+    } else {
+      squirrel.directionX = 0;
+      squirrel.directionY = deltaY > 0 ? 1 : -1;
+    }
+  }
+
+  startGame();
+</script>
 </body>
 </html>
