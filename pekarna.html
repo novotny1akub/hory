@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pekařská nabídka — compact</title>
+  <style>
+    :root{
+      --bg:#fff7ee;
+      --card:#ffffff;
+      --muted:#6b5b52;
+      --accent:#b3572b;
+      --accent2:#7b3f1e;
+      --ring:rgba(179,87,43,.25);
+      --shadow:0 10px 24px rgba(40,18,8,.08);
+      --shadow2:0 6px 14px rgba(40,18,8,.06);
+      --radius:14px;
+      font-family: ui-rounded, "SF Pro Rounded", Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(1200px 500px at 10% 0%, #fff 0%, var(--bg) 55%), linear-gradient(180deg, #fff 0%, var(--bg) 100%);color:#2a1a12;line-height:1.25;font-size:14px}
+    .wrap{max-width:1180px;margin:18px auto;padding:12px}
+    .banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #f0e3da;background:rgba(255,255,255,.75);border-radius:var(--radius);box-shadow:var(--shadow2)}
+    .tagline{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px}
+    .crumbs{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid #f0e3da;background:#fff;box-shadow:0 2px 6px rgba(40,18,8,.04);font-size:12px;color:#3a251c}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:10px}
+    h1{font-size:20px;margin:0;display:flex;gap:10px;align-items:center;letter-spacing:.2px}
+    h1 .logo{filter:drop-shadow(0 6px 10px rgba(40,18,8,.12))}
+    .controls{display:flex;gap:8px;align-items:center}
+    input[type=search]{padding:9px 10px;border:1px solid #ead7cc;border-radius:12px;min-width:180px;background:#fff;box-shadow:0 1px 0 rgba(40,18,8,.03)}
+    input[type=search]:focus{outline:none;box-shadow:0 0 0 4px var(--ring)}
+    .lang-toggle{padding:8px 10px;border-radius:12px;border:1px solid #ead7cc;background:linear-gradient(180deg,#fff 0%,#fff6ef 100%);cursor:pointer;box-shadow:0 2px 10px rgba(40,18,8,.06)}
+    .lang-toggle:hover{transform:translateY(-1px)}
+    .lang-toggle:active{transform:translateY(0)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:12px}
+    /* desktop layout: keep 3 category cards on one row */
+    @media(min-width:1100px){
+      .wrap{max-width:1200px}
+      .grid{grid-template-columns:repeat(3, minmax(0, 1fr))}
+    }
+    /* very wide screens: keep it contained (still 3 columns) */
+    @media(min-width:1600px){
+      .wrap{max-width:1280px}
+    }
+    /* categories with only 1–2 items should not waste space */
+    details.tiny{padding:6px}
+    details.tiny summary{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-weight:600}
+    details.tiny summary::after{content:attr(data-count);font-weight:600;color:var(--muted);font-size:12px}
+    details.tiny table{margin-top:6px}
+    details.tiny tr{border-top:0}
+    details.tiny td{padding:2px 4px;display:inline}
+    details.tiny td.id{display:none}
+    details.tiny td.cz{display:inline;color:var(--muted)}
+    details.tiny td.de{display:inline;font-weight:600}
+    details.tiny td.price{display:inline;font-weight:700}
+    details.tiny td.price::before{content:" — € ";font-weight:600;color:var(--muted)}
+    details.tiny td.cz::before{content:" · ";color:var(--muted)}
+    details.tiny tbody{display:block}
+    details.tiny tr{display:block}
+    details.tiny td{white-space:normal}
+    @media(max-width:520px){details.tiny td.cz{display:none} details.tiny td.price::before{content:" · € "}}
+
+    /* grouped tiny categories: subheaders inside one table */
+    tr.subhead td{padding-top:12px;padding-bottom:6px;font-size:12px;color:var(--muted);font-weight:800;border-top:1px dashed #f2e4db}
+    details{background:var(--card);border:1px solid #f0e3da;border-radius:var(--radius);padding:10px;box-shadow:var(--shadow)}
+    summary{font-weight:800;cursor:pointer;list-style:none;outline:none;display:flex;align-items:center;gap:10px}
+    summary .ico{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:#fff2e8;border:1px solid #f0e3da}
+    summary .hint{margin-left:auto;color:var(--muted);font-weight:600;font-size:12px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead{display:none}
+    tr{border-top:1px dashed #f2e4db}
+    td{padding:6px 4px;vertical-align:middle}
+    td.id{width:40px;color:var(--muted);font-size:12px}
+    td.de{font-weight:600}
+    td.cz{color:var(--muted);font-size:13px}
+    td.price{text-align:right;white-space:nowrap;font-weight:800;color:var(--accent2)}
+    @media(min-width:720px){thead{display:table-header-group} td{padding:8px} td.id{width:60px}}
+    /* ultra compact small screens */
+    @media(max-width:520px){body{font-size:13px} td.de{font-size:13px}}
+    .muted{color:var(--muted);font-size:12px}
+    .foot{margin-top:12px;color:var(--muted);font-size:12px}
+    .foot strong{color:#3a251c}
+    .sprinkles{opacity:.9}
+    .no-results{padding:18px;text-align:center;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header>
+      <h1><span class="logo">🥐</span> Pekařská nabídka <span class="muted">(DE → CZ)</span></h1>
+      <div class="controls">
+        <button id="toggleLang" class="lang-toggle">Zobrazit: CZ + DE</button>
+      </div>
+    </header>
+
+    <main id="catalog">
+      <div class="grid" id="grid">
+
+<!-- Category: Pečivo (sladké + další) -->
+<details open data-cat="Pečivo">
+  <summary><span class="ico">🥐</span> Pečivo (sladké + další) <span class="hint">croissanty • pečivo</span></summary>
+  <div>
+    <table>
+      <thead><tr><th class="th-id">ID</th><th class="th-de">DE</th><th class="th-cz">CZ</th><th class="th-price">€</th></tr></thead>
+      <tbody>
+<tr class="subhead"><td colspan="4">Sladké listové a kynuté pečivo</td></tr>
+<tr data-id="2178"><td class="id">2178</td><td class="de">Apfelstrudel Stück</td><td class="cz">Jablečný štrúdl (porce)</td><td class="price">4,50</td></tr>
+<tr data-id="2142"><td class="id">2142</td><td class="de">Mohnrolle</td><td class="cz">Makový závin</td><td class="price">3,50</td></tr>
+<tr data-id="2140"><td class="id">2140</td><td class="de">Topfentascherl</td><td class="cz">Tvarohová taštička</td><td class="price">3,50</td></tr>
+<tr data-id="2100"><td class="id">2100</td><td class="de">Rosinenkipferl</td><td class="cz">Rozinkový rohlíček</td><td class="price">2,60</td></tr>
+<tr data-id="2098"><td class="id">2098</td><td class="de">Milchkipferl</td><td class="cz">Mléčný rohlíček</td><td class="price">2,00</td></tr>
+<tr data-id="2097"><td class="id">2097</td><td class="de">Buttercroissant Pistazie</td><td class="cz">Pistáciový croissant</td><td class="price">4,50</td></tr>
+<tr data-id="2095"><td class="id">2095</td><td class="de">Buttercroissant Mandel</td><td class="cz">Mandlový croissant</td><td class="price">3,90</td></tr>
+<tr data-id="2093"><td class="id">2093</td><td class="de">Buttercroissant Vanille</td><td class="cz">Vanilkový croissant</td><td class="price">3,90</td></tr>
+<tr data-id="2092"><td class="id">2092</td><td class="de">Buttercroissant</td><td class="cz">Máslový croissant</td><td class="price">2,60</td></tr>
+<tr data-id="2096"><td class="id">2096</td><td class="de">Buttercroissant Nougat</td><td class="cz">Nugátový croissant</td><td class="price">3,90</td></tr>
+<tr data-id="2152"><td class="id">2152</td><td class="de">Nußkrone</td><td class="cz">Ořechový hřeben</td><td class="price">3,50</td></tr>
+<tr class="subhead"><td colspan="4">Další (krátké položky)</td></tr>
+<tr class="subhead"><td colspan="4">Sezónní nabídka</td></tr>
+<tr data-id="2148"><td class="id">2148</td><td class="de">Faschingskrapfen</td><td class="cz">Koblížek (rakouský krapfen)</td><td class="price">2,20</td></tr>
+<tr class="subhead"><td colspan="4">Slané pečivo</td></tr>
+<tr data-id="2050"><td class="id">2050</td><td class="de">Salzstangerl</td><td class="cz">Slaná tyčinka</td><td class="price">1,25</td></tr>
+<tr class="subhead"><td colspan="4">Celozrnné pečivo</td></tr>
+<tr data-id="2064"><td class="id">2064</td><td class="de">Weckerl gemischt 80g</td><td class="cz">Vícezrnná houska 80 g</td><td class="price">1,25</td></tr>
+<tr class="subhead"><td colspan="4">Máslová vánočka</td></tr>
+<tr data-id="2815"><td class="id">2815</td><td class="de">Striezel 500g</td><td class="cz">Máslová vánočka 500 g</td><td class="price">8,20</td></tr>
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<!-- Category: Bílé chleby a bagety -->
+<details open data-cat="Bílé chleby a bagety">
+  <summary><span class="ico">🥖</span> Bílé chleby a bagety <span class="hint">housky • chléb • bagety</span></summary>
+  <div>
+    <table>
+      <thead><tr><th class="th-id">ID</th><th class="th-de">DE</th><th class="th-cz">CZ</th><th class="th-price">€</th></tr></thead>
+      <tbody>
+<tr class="subhead"><td colspan="4">Bílé pečivo / housky</td></tr>
+<tr data-id="3025"><td class="id">3025</td><td class="de">Burger Premium ohne Sesam</td><td class="cz">Burger houska bez sezamu</td><td class="price">1,60</td></tr>
+<tr data-id="2119"><td class="id">2119</td><td class="de">Brioche Burger Bun Sesam</td><td class="cz">Brioche houska se sezamem</td><td class="price">1,60</td></tr>
+<tr data-id="2018"><td class="id">2018</td><td class="de">Bosna / Hot Dog</td><td class="cz">Houska na hot dog</td><td class="price">1,60</td></tr>
+<tr data-id="2002"><td class="id">2002</td><td class="de">Handkaisersemmel</td><td class="cz">Císařská houska</td><td class="price">1,10</td></tr>
+<tr data-id="2000"><td class="id">2000</td><td class="de">Semmel</td><td class="cz">Bílá houska</td><td class="price">0,55</td></tr>
+
+<tr class="subhead"><td colspan="4">Chléb</td></tr>
+<tr data-id="1028"><td class="id">1028</td><td class="de">Loisi Laib 1 kg</td><td class="cz">Loisi chléb 1 kg</td><td class="price">5,25</td></tr>
+<tr data-id="1000"><td class="id">1000</td><td class="de">Mischbrot 1kg</td><td class="cz">Smíšený chléb 1 kg</td><td class="price">5,25</td></tr>
+<tr data-id="1013"><td class="id">1013</td><td class="de">Hüttenkasten 3 Kg</td><td class="cz">Chléb z formy 3 kg</td><td class="price">14,00</td></tr>
+
+<tr class="subhead"><td colspan="4">Bagety a bílé chleby</td></tr>
+<tr data-id="1160"><td class="id">1160</td><td class="de">Walnussbaguette</td><td class="cz">Bageta s vlašskými ořechy</td><td class="price">4,80</td></tr>
+<tr data-id="1155"><td class="id">1155</td><td class="de">Körnerbaguette</td><td class="cz">Vícezrnná bageta</td><td class="price">3,80</td></tr>
+<tr data-id="2415"><td class="id">2415</td><td class="de">Knoblauch-Schwarzpfeffer</td><td class="cz">Bageta s česnekem a pepřem</td><td class="price">3,80</td></tr>
+<tr data-id="1165"><td class="id">1165</td><td class="de">Franz. Baguette</td><td class="cz">Francouzská bageta</td><td class="price">3,80</td></tr>
+<tr data-id="1180"><td class="id">1180</td><td class="de">Ciabatta</td><td class="cz">Ciabatta</td><td class="price">3,80</td></tr>
+<tr data-id="1150"><td class="id">1150</td><td class="de">Toastbrot 1000g</td><td class="cz">Toastový chléb 1 kg</td><td class="price">8,80</td></tr>
+
+<tr class="subhead"><td colspan="4">Speciální chleby</td></tr>
+<tr data-id="1104"><td class="id">1104</td><td class="de">Roggenbrot 1 kg (ohne Hefe)</td><td class="cz">Žitný chléb bez droždí</td><td class="price">5,25</td></tr>
+<tr data-id="3532"><td class="id">3532</td><td class="de">Kartoffelbrot 750g</td><td class="cz">Bramborový chléb</td><td class="price">5,25</td></tr>
+<tr data-id="1102"><td class="id">1102</td><td class="de">Dinkelvollkornbrot 750g</td><td class="cz">Celozrnný špaldový chléb</td><td class="price">5,25</td></tr>
+<tr data-id="1145"><td class="id">1145</td><td class="de">Nussbrot 750g</td><td class="cz">Ořechový chléb</td><td class="price">5,25</td></tr>
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<!-- Category: Dezerty (sušenky + dorty) -->
+<details open data-cat="Dezerty">
+  <summary><span class="ico">🍰</span> Dezerty (sušenky + dorty) <span class="hint">sušenky • dorty</span></summary>
+  <div>
+    <table>
+      <thead><tr><th class="th-id">ID</th><th class="th-de">DE</th><th class="th-cz">CZ</th><th class="th-price">€</th></tr></thead>
+      <tbody>
+<tr class="subhead"><td colspan="4">Sušenky</td></tr>
+<tr data-id="8718"><td class="id">8718</td><td class="de">Amarena Bällchen 5 Stk. Box</td><td class="cz">Amarena kuličky – balení 5 ks</td><td class="price">12,00</td></tr>
+<tr data-id="8717"><td class="id">8717</td><td class="de">Amarena Bällchen 1 Stk.</td><td class="cz">Amarena kulička</td><td class="price">2,40</td></tr>
+<tr data-id="8502"><td class="id">8502</td><td class="de">Linzerkipferl</td><td class="cz">Linecký rohlíček</td><td class="price">3,10</td></tr>
+<tr data-id="8719"><td class="id">8719</td><td class="de">Schoko Mandel Splitter 150g</td><td class="cz">Čokoládovo-mandlové sušenky 150 g</td><td class="price">8,50</td></tr>
+<tr data-id="8654"><td class="id">8654</td><td class="de">Pekannuss-Nougat Cookie</td><td class="cz">Sušenka s pekany a nugátem</td><td class="price">3,90</td></tr>
+<tr class="subhead"><td colspan="4">Dorty a koláče — celé</td></tr>
+<tr data-id="8000"><td class="id">8000</td><td class="de">Sachertorte 26cm</td><td class="cz">Sacher dort 26 cm</td><td class="price">55,00</td></tr>
+<tr data-id="8100"><td class="id">8100</td><td class="de">Sachertorte 18cm</td><td class="cz">Sacher dort 18 cm</td><td class="price">45,00</td></tr>
+<tr data-id="8015"><td class="id">8015</td><td class="de">Kürbistorte 26cm</td><td class="cz">Dýňový dort 26 cm</td><td class="price">55,00</td></tr>
+<tr data-id="8020"><td class="id">8020</td><td class="de">Cheesecake 26cm</td><td class="cz">Cheesecake 26 cm</td><td class="price">55,00</td></tr>
+<tr data-id="3526"><td class="id">3526</td><td class="de">Apfelstrudel Ganz</td><td class="cz">Celý jablečný štrúdl</td><td class="price">31,50</td></tr>
+<tr data-id="8013"><td class="id">8013</td><td class="de">Banana bread (vegan) im Ganzen</td><td class="cz">Veganský banánový chlebíček (celý)</td><td class="price">15,00</td></tr>
+<tr class="subhead"><td colspan="4">Dorty a koláče — porce</td></tr>
+<tr data-id="8652"><td class="id">8652</td><td class="de">Schokobrownie</td><td class="cz">Čokoládový brownie</td><td class="price">3,90</td></tr>
+<tr data-id="2184"><td class="id">2184</td><td class="de">Apfelstreuselkuchen Stück</td><td class="cz">Jablečný koláč s drobenkou (porce)</td><td class="price">4,00</td></tr>
+<tr data-id="8612"><td class="id">8612</td><td class="de">Linzerschnitte Stk.</td><td class="cz">Linecký řez</td><td class="price">4,40</td></tr>
+<tr data-id="8646"><td class="id">8646</td><td class="de">Punschkrapferl</td><td class="cz">Punčový řez</td><td class="price">3,50</td></tr>
+<tr data-id="2180"><td class="id">2180</td><td class="de">Topfenstrudel Stück</td><td class="cz">Tvarohový štrúdl (porce)</td><td class="price">4,50</td></tr>
+      </tbody>
+    </table>
+  </div>
+</details>
+
+
+      </div>
+
+      <div class="foot">Ceník — kompaktní zobrazení.</div>
+    </main>
+  </div>
+
+<script>
+(function(){
+    const grid = document.getElementById('grid');
+    const toggle = document.getElementById('toggleLang');
+  // mark nearly-empty categories as tiny (no wasted card space)
+  document.querySelectorAll('#grid details').forEach(d=>{
+    const rows = d.querySelectorAll('tr[data-id]');
+    const n = rows.length;
+    if(n<=2){
+      d.classList.add('tiny');
+      const s = d.querySelector('summary');
+      if(s) s.dataset.count = (n===1? '1 položka' : '2 položky');
+      // keep them visible by default (requested)
+      d.open = true;
+    }
+  });
+  let mode = 'cz'; // 'both' | 'de' | 'cz'  (default CZ only)
+
+  function applyMode(){
+    const showDE = (mode==='both' || mode==='de');
+    const showCZ = (mode==='both' || mode==='cz');
+
+    // normal tables
+    document.querySelectorAll('td.de').forEach(el=>el.style.display = showDE? 'table-cell' : 'none');
+    document.querySelectorAll('td.cz').forEach(el=>el.style.display = showCZ? 'table-cell' : 'none');
+
+    // tiny inline rows
+    document.querySelectorAll('details.tiny td.de').forEach(el=>el.style.display = showDE? 'inline' : 'none');
+    document.querySelectorAll('details.tiny td.cz').forEach(el=>el.style.display = showCZ? 'inline' : 'none');
+
+    // table headers
+    document.querySelectorAll('th.th-de').forEach(el=>el.style.display = showDE? 'table-cell' : 'none');
+    document.querySelectorAll('th.th-cz').forEach(el=>el.style.display = showCZ? 'table-cell' : 'none');
+
+    toggle.textContent = mode==='both' ? 'Zobrazit: CZ + DE' : (mode==='de' ? 'Zobrazit: DE only' : 'Zobrazit: CZ only');
+
+    // column labels according to visible language
+    document.querySelectorAll('th.th-id').forEach(el=>el.textContent = (mode==='de') ? 'ID' : 'ID');
+    document.querySelectorAll('th.th-de').forEach(el=>el.textContent = 'DE');
+    document.querySelectorAll('th.th-cz').forEach(el=>el.textContent = 'CZ');
+    document.querySelectorAll('th.th-price').forEach(el=>el.textContent = (mode==='de') ? '€' : '€');
+  }
+
+  function cycleMode(){
+    mode = (mode==='both') ? 'de' : (mode==='de' ? 'cz' : 'both');
+    applyMode();
+  }
+
+  toggle.addEventListener('click', cycleMode);
+
+  // default is CZ only on all screen sizes
+  applyMode();
+})();
+</script>
+</body>
+</html>
